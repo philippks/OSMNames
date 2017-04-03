@@ -123,12 +123,19 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION countryName(partition_id int) returns TEXT as $$
-  SELECT COALESCE(name -> 'name:en',name -> 'name',name -> 'name:fr',name -> 'name:de',name -> 'name:es',name -> 'name:ru',name -> 'name:zh') FROM country_name WHERE partition = partition_id;
-$$ language 'sql';
+CREATE OR REPLACE FUNCTION country_name(country_code_in VARCHAR(2)) returns TEXT as $$
+  SELECT COALESCE(name -> 'name:en',
+                  name -> 'name',
+                  name -> 'name:fr',
+                  name -> 'name:de',
+                  name -> 'name:es',
+                  name -> 'name:ru',
+                  name -> 'name:zh')
+          FROM country_name WHERE country_code = country_code_in;
+$$ LANGUAGE 'sql' IMMUTABLE;
 
 
-CREATE OR REPLACE FUNCTION getImportance(rank_search int, wikipedia character varying, country_code VARCHAR(2)) returns double precision as $$
+CREATE OR REPLACE FUNCTION get_importance(rank_search int, wikipedia VARCHAR, country_code VARCHAR(2)) returns double precision as $$
 
 DECLARE
   langs TEXT[];
@@ -174,14 +181,14 @@ $$
 LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION get_country_language_code(search_country_code VARCHAR(2)) RETURNS TEXT
+CREATE OR REPLACE FUNCTION get_country_language_code(country_code_in VARCHAR(2)) RETURNS TEXT
   AS $$
 DECLARE
-  nearcountry RECORD;
+  country RECORD;
 BEGIN
-  FOR nearcountry IN select distinct country_default_language_code from country_name where country_code = search_country_code limit 1
+  FOR country IN SELECT DISTINCT country_default_language_code FROM country_name WHERE country_code = country_code_in LIMIT 1
   LOOP
-    RETURN lower(nearcountry.country_default_language_code);
+    RETURN lower(country.country_default_language_code);
   END LOOP;
   RETURN NULL;
 END;
