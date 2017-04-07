@@ -2,6 +2,7 @@ import os
 from subprocess import check_call
 from osmnames.helpers.database import psql_exec, exec_sql_from_file
 from osmnames import settings
+from osmnames.import_osm.prepare_housenumbers import prepare_housenumbers
 
 
 def import_osm():
@@ -14,24 +15,24 @@ def import_osm():
 
 def download_pbf():
     if settings.get("PBF_FILE"):
-        print("skip pbf download since PBF_FILE env is defined: {}".format(settings.get("PBF_FILE")))
+        print "skip pbf download since PBF_FILE env is defined: {}".format(settings.get("PBF_FILE"))
         return
 
-    url = settings.get("PBF_URL")
+    url = settings.get("PBF_FILE_URL")
     destination_dir = settings.get("IMPORT_DIR")
     check_call(["wget", "--no-clobber", "--directory-prefix", destination_dir, url])
 
 
 def import_pbf_file():
     import_dir = settings.get("IMPORT_DIR")
-    pbf_filename = settings.get("PBF_FILE") or settings.get("PBF_URL").split('/')[-1]
+    pbf_filename = settings.get("PBF_FILE") or settings.get("PBF_FILE_URL").split('/')[-1]
     pbf_filepath = import_dir + pbf_filename
 
     imposm_connection = "postgis://{user}@{host}/{db_name}".format(
-            user=settings.get("DB_USER"),
-            host=settings.get("DB_HOST"),
-            db_name=settings.get("DB_NAME"),
-            )
+        user=settings.get("DB_USER"),
+        host=settings.get("DB_HOST"),
+        db_name=settings.get("DB_NAME"),
+        )
 
     check_call([
         "imposm3", "import",
@@ -69,6 +70,7 @@ def prepare_imported_data():
     determine_linked_places()
     create_hierarchy()
     merge_corresponding_streets()
+    prepare_housenumbers()
 
 
 def delete_unusable_entries():

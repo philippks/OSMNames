@@ -120,7 +120,7 @@ tables:
       - hamlet
       landuse:
       - residential
-      boundary: 
+      boundary:
       - administrative
   point_tmp:
     type: point
@@ -171,19 +171,71 @@ tables:
       - town
       - village
       - hamlet
+  housenumber_tmp:
+    type: point
+    fields:
+    - name: osm_id
+      type: id
+    - name: parent_id
+      type: integer
+    - name: street_id
+      type: integer
+    - name: geometry
+      type: geometry
+    - key: name
+      name: name
+      type: string
+    - name: type
+      type: mapping_value
+    - key: addr:country
+      name: country
+      type: string
+    - key: addr:street
+      name: street
+      type: string
+    - key: addr:postcode
+      name: postcode
+      type: string
+    - key: addr:city
+      name: city
+      type: string
+    - key: addr:housenumber
+      name: housenumber
+      type: string
+    mapping:
+      addr:housenumber:
+      - __any__
   relation:
+    type: relation
+    columns:
+    - name: osm_id
+      type: id
+    - key: name
+      name: name
+      type: string
+    - key: type
+      name: type
+      type: string
+    mapping:
+      type:
+      - associatedStreet
+      - street
+  relation_member:
     type: relation_member
     columns:
     - name: osm_id
       type: id
-    - name: member
+    - name: member_id
       type: member_id
     - name: role
       type: member_role
-    - name: type
+    - name: member_type
       type: member_type
     - name: geometry
       type: geometry
+    - key: type
+      name: relation_type
+      type: string
     - name: name
       key: name
       type: string
@@ -191,5 +243,10 @@ tables:
     mapping:
       landuse:
       - residential
-      boundary: 
+      boundary:
       - administrative
+      type:
+      - associatedStreet
+      - street
+tags:
+  load_all: true
