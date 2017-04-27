@@ -31,8 +31,8 @@ BEGIN
           FROM osm_polygon
           WHERE admin_level <= 4;
 
-  CREATE INDEX idx_osm_polygon_country_code ON osm_polygon(country_code);
-  CREATE INDEX idx_osm_linestring_country_code ON osm_linestring(country_code);
-  CREATE INDEX idx_osm_point_country_code ON osm_point(country_code);
+  CREATE INDEX IF NOT EXISTS idx_osm_polygon_country_code ON osm_polygon(country_code);
+  CREATE INDEX IF NOT EXISTS idx_osm_linestring_country_code ON osm_linestring(country_code);
+  CREATE INDEX IF NOT EXISTS idx_osm_point_country_code ON osm_point(country_code);
 END
 $$ LANGUAGE plpgsql;

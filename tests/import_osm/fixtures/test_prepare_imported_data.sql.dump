@@ -27,15 +27,18 @@ DROP INDEX IF EXISTS public.osm_linestring_osm_id_idx;
 DROP INDEX IF EXISTS public.osm_linestring_geom;
 DROP INDEX IF EXISTS public.osm_housenumber_osm_id_idx;
 DROP INDEX IF EXISTS public.osm_housenumber_geom;
-DROP INDEX IF EXISTS public.idx_osm_linestring_merged_false;
+DROP INDEX IF EXISTS public.idx_osm_polygon_country_code;
+DROP INDEX IF EXISTS public.idx_osm_point_country_code;
+DROP INDEX IF EXISTS public.idx_osm_linestring_country_code;
 DROP INDEX IF EXISTS public.idx_country_osm_grid_geometry;
+DROP INDEX IF EXISTS public.idx_country_name_country_code;
 ALTER TABLE IF EXISTS ONLY public.osm_relation DROP CONSTRAINT IF EXISTS osm_relation_pkey;
 ALTER TABLE IF EXISTS ONLY public.osm_relation_member DROP CONSTRAINT IF EXISTS osm_relation_member_pkey;
 ALTER TABLE IF EXISTS ONLY public.osm_polygon DROP CONSTRAINT IF EXISTS osm_polygon_pkey;
 ALTER TABLE IF EXISTS ONLY public.osm_point DROP CONSTRAINT IF EXISTS osm_point_pkey;
 ALTER TABLE IF EXISTS ONLY public.osm_linestring DROP CONSTRAINT IF EXISTS osm_linestring_pkey;
 ALTER TABLE IF EXISTS ONLY public.osm_housenumber DROP CONSTRAINT IF EXISTS osm_housenumber_pkey;
-ALTER TABLE IF EXISTS ONLY public.country_osm_grid DROP CONSTRAINT IF EXISTS country_osm_grid_pkey;
+ALTER TABLE IF EXISTS ONLY public.country_name DROP CONSTRAINT IF EXISTS country_name_pkey;
 ALTER TABLE IF EXISTS public.osm_relation_member ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE IF EXISTS public.osm_relation ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE IF EXISTS public.osm_polygon ALTER COLUMN id DROP DEFAULT;
@@ -47,14 +50,17 @@ DROP TABLE IF EXISTS public.osm_relation_member;
 DROP SEQUENCE IF EXISTS public.osm_relation_id_seq;
 DROP TABLE IF EXISTS public.osm_relation;
 DROP SEQUENCE IF EXISTS public.osm_polygon_id_seq;
-DROP TABLE IF EXISTS public.osm_polygon;
 DROP SEQUENCE IF EXISTS public.osm_point_id_seq;
-DROP TABLE IF EXISTS public.osm_point;
 DROP SEQUENCE IF EXISTS public.osm_linestring_id_seq;
-DROP TABLE IF EXISTS public.osm_linestring;
 DROP SEQUENCE IF EXISTS public.osm_housenumber_id_seq;
+DROP VIEW IF EXISTS public.osm_elements_view;
+DROP TABLE IF EXISTS public.osm_polygon;
+DROP TABLE IF EXISTS public.osm_point;
+DROP VIEW IF EXISTS public.osm_aggregated_merged_linestrings_view;
+DROP TABLE IF EXISTS public.osm_linestring;
 DROP TABLE IF EXISTS public.osm_housenumber;
 DROP TABLE IF EXISTS public.country_osm_grid;
+DROP TABLE IF EXISTS public.country_name;
 SET search_path = public, pg_catalog;
 
 SET default_tablespace = '';
@@ -62,11 +68,23 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: country_name; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE country_name (
+    country_code character varying(2) NOT NULL,
+    name hstore,
+    country_default_language_code character varying(2),
+    partition integer
+);
+
+
+--
 -- Name: country_osm_grid; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE country_osm_grid (
-    country_code character varying(2) NOT NULL,
+    country_code character varying(2),
     area double precision,
     geometry geometry
 );
@@ -95,25 +113,6 @@ CREATE TABLE osm_housenumber (
 
 
 --
--- Name: osm_housenumber_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE osm_housenumber_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: osm_housenumber_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE osm_housenumber_id_seq OWNED BY osm_housenumber.id;
-
-
---
 -- Name: osm_linestring; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -135,27 +134,34 @@ CREATE TABLE osm_linestring (
     parent_id bigint,
     place_rank integer,
     country_code character varying(2),
-    merged boolean
+    merged_into bigint
 );
 
 
 --
--- Name: osm_linestring_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: osm_aggregated_merged_linestrings_view; Type: VIEW; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE osm_linestring_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: osm_linestring_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE osm_linestring_id_seq OWNED BY osm_linestring.id;
+CREATE VIEW osm_aggregated_merged_linestrings_view AS
+ SELECT min(osm_linestring.id) AS id,
+    max(((osm_linestring.osm_id)::character varying)::text) AS osm_id,
+    min(osm_linestring.parent_id) AS parent_id,
+    max((osm_linestring.type)::text) AS type,
+    st_union(array_agg(osm_linestring.geometry)) AS geometry,
+    max(osm_linestring.place_rank) AS place_rank,
+    max((osm_linestring.name)::text) AS name,
+    max((osm_linestring.name_fr)::text) AS name_fr,
+    max((osm_linestring.name_en)::text) AS name_en,
+    max((osm_linestring.name_de)::text) AS name_de,
+    max((osm_linestring.name_es)::text) AS name_es,
+    max((osm_linestring.name_ru)::text) AS name_ru,
+    max((osm_linestring.name_zh)::text) AS name_zh,
+    min((osm_linestring.country_code)::text) AS country_code,
+    max((osm_linestring.wikidata)::text) AS wikidata,
+    max((osm_linestring.wikipedia)::text) AS wikipedia
+   FROM osm_linestring
+  WHERE (osm_linestring.merged_into IS NOT NULL)
+  GROUP BY osm_linestring.merged_into;
 
 
 --
@@ -185,25 +191,6 @@ CREATE TABLE osm_point (
 
 
 --
--- Name: osm_point_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE osm_point_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: osm_point_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE osm_point_id_seq OWNED BY osm_point.id;
-
-
---
 -- Name: osm_polygon; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -228,6 +215,101 @@ CREATE TABLE osm_polygon (
     linked_osm_id bigint,
     country_code character varying(2)
 );
+
+
+--
+-- Name: osm_elements_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW osm_elements_view AS
+ SELECT osm_linestring.id,
+    'osm_linestring'::text AS "table",
+    osm_linestring.osm_id,
+    osm_linestring.name,
+    osm_linestring.country_code,
+    osm_linestring.parent_id
+   FROM osm_linestring
+UNION ALL
+ SELECT osm_polygon.id,
+    'osm_polygon'::text AS "table",
+    osm_polygon.osm_id,
+    osm_polygon.name,
+    osm_polygon.country_code,
+    osm_polygon.parent_id
+   FROM osm_polygon
+UNION ALL
+ SELECT osm_point.id,
+    'osm_point'::text AS "table",
+    osm_point.osm_id,
+    osm_point.name,
+    osm_point.country_code,
+    osm_point.parent_id
+   FROM osm_point
+UNION ALL
+ SELECT osm_housenumber.id,
+    'osm_housenumber'::text AS "table",
+    osm_housenumber.osm_id,
+    osm_housenumber.name,
+    osm_housenumber.country_code,
+    osm_housenumber.parent_id
+   FROM osm_housenumber;
+
+
+--
+-- Name: osm_housenumber_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE osm_housenumber_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: osm_housenumber_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE osm_housenumber_id_seq OWNED BY osm_housenumber.id;
+
+
+--
+-- Name: osm_linestring_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE osm_linestring_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: osm_linestring_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE osm_linestring_id_seq OWNED BY osm_linestring.id;
+
+
+--
+-- Name: osm_point_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE osm_point_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: osm_point_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE osm_point_id_seq OWNED BY osm_point.id;
 
 
 --
@@ -358,6 +440,14 @@ ALTER TABLE ONLY osm_relation_member ALTER COLUMN id SET DEFAULT nextval('osm_re
 
 
 --
+-- Name: country_name country_name_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY country_name
+    ADD CONSTRAINT country_name_pkey PRIMARY KEY (country_code);
+
+
+--
 -- Name: osm_housenumber osm_housenumber_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -406,6 +496,13 @@ ALTER TABLE ONLY osm_relation
 
 
 --
+-- Name: idx_country_name_country_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_country_name_country_code ON country_name USING btree (country_code);
+
+
+--
 -- Name: idx_country_osm_grid_geometry; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -413,10 +510,24 @@ CREATE INDEX idx_country_osm_grid_geometry ON country_osm_grid USING gist (geome
 
 
 --
--- Name: idx_osm_linestring_merged_false; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_osm_linestring_country_code; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_osm_linestring_merged_false ON osm_linestring USING btree (merged) WHERE (merged IS NOT TRUE);
+CREATE INDEX idx_osm_linestring_country_code ON osm_linestring USING btree (country_code);
+
+
+--
+-- Name: idx_osm_point_country_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_osm_point_country_code ON osm_point USING btree (country_code);
+
+
+--
+-- Name: idx_osm_polygon_country_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_osm_polygon_country_code ON osm_polygon USING btree (country_code);
 
 
 --

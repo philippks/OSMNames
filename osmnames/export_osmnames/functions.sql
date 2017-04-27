@@ -59,7 +59,7 @@ END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
 
-DROP FUNCTION IF EXISTS get_parent_info(TEXT, BIGINT, INTEGER);
+DROP FUNCTION IF EXISTS get_parent_info(TEXT, BIGINT, INTEGER) CASCADE;
 CREATE FUNCTION get_parent_info(display_name TEXT, polygon_id BIGINT, current_rank INTEGER) RETURNS parentInfo AS $$
 DECLARE
   retVal parentInfo;

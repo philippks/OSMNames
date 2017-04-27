@@ -18,7 +18,7 @@ SELECT
   COALESCE(parentInfo.state, '') AS state,
   COALESCE(country_name(country_code), '') AS country,
   COALESCE(country_code, '') AS country_code,
-  parentInfo.displayName  AS display_name,
+  parentInfo.displayName AS display_name,
   ST_XMIN(ST_Transform(geometry, 4326)) AS west,
   ST_YMIN(ST_Transform(geometry, 4326)) AS south,
   ST_XMAX(ST_Transform(geometry, 4326)) AS east,
@@ -30,4 +30,4 @@ FROM
   getLanguageName(name, name_fr, name_en, name_de, name_es, name_ru, name_zh) AS languageName,
   getAlternativesNames(name, name_fr, name_en, name_de, name_es, name_ru, name_zh, languageName,',') AS alternative_names,
   get_parent_info(languageName, parent_id, place_rank) AS parentInfo
-WHERE merged IS NOT TRUE;
+WHERE merged_into IS NULL;
