@@ -11,13 +11,13 @@ SELECT
   ST_X(ST_PointOnSurface(ST_Buffer(ST_Transform(geometry, 4326), 0.0))) AS lon,
   ST_Y(ST_PointOnSurface(ST_Buffer(ST_Transform(geometry, 4326), 0.0))) AS lat,
   place_rank AS place_rank,
-  get_importance(place_rank, wikipedia, country_code) AS importance,
+  get_importance(place_rank, wikipedia, relevant_country_code) AS importance,
   ''::TEXT AS street,
   COALESCE(parentInfo.city, '') AS city,
   COALESCE(parentInfo.county, '') AS county,
   COALESCE(parentInfo.state, '') AS state,
-  COALESCE(country_name(country_code), '') AS country,
-  COALESCE(country_code, '') AS country_code,
+  COALESCE(country_name(relevant_country_code), '') AS country,
+  COALESCE(relevant_country_code, '') AS country_code,
   parentInfo.displayName  AS display_name,
   ST_XMIN(ST_Transform(geometry, 4326)) AS west,
   ST_YMIN(ST_Transform(geometry, 4326)) AS south,
@@ -31,5 +31,6 @@ FROM
   get_parent_info(languageName, parent_id, place_rank) AS parentInfo,
   getTypeForRelations(linked_osm_id, type, place_rank) AS relation_type,
   COALESCE(NULLIF(getNameForRelations(linked_osm_id, relation_type), ''), languageName) AS relationName,
-  getAlternativesNames(name, name_fr, name_en, name_de, name_es, name_ru, name_zh, relationName, ',') AS alternative_names
+  getAlternativesNames(name, name_fr, name_en, name_de, name_es, name_ru, name_zh, relationName, ',') AS alternative_names,
+  COALESCE(NULLIF(osm_polygon.country_code, ''), parentInfo.country_code) AS relevant_country_code
 ;

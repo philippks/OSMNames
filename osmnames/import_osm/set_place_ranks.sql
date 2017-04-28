@@ -30,3 +30,5 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 UPDATE osm_polygon SET place_rank = get_place_rank(type, admin_level);
 UPDATE osm_linestring SET place_rank = get_place_rank(type, admin_level);
 UPDATE osm_point SET place_rank = get_place_rank(type, admin_level);
+
+CREATE INDEX IF NOT EXISTS idx_osm_polygon_place_rank ON osm_polygon(place_rank);

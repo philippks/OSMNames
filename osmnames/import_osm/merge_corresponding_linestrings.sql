@@ -11,7 +11,6 @@ BEGIN
         osm_linestring AS rhs
       WHERE
         ST_Touches(lhs.geometry, rhs.geometry)
-        AND lhs.country_code = rhs.country_code
         AND lhs.parent_id = rhs.parent_id
         AND lhs.parent_id IS NOT NULL
         AND lhs.name = rhs.name
@@ -42,7 +41,6 @@ CREATE VIEW osm_aggregated_merged_linestrings_view AS
     max(name_es) AS name_es,
     max(name_ru) AS name_ru,
     max(name_zh) AS name_zh,
-    min(country_code) AS country_code,
     max(wikidata) AS wikidata,
     max(wikipedia) AS wikipedia
 FROM osm_linestring
