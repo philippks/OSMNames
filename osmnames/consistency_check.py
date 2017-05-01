@@ -9,9 +9,9 @@ def missing_country_codes():
     if not settings.get("CONSISTENCY_CHECK"):
         return
 
-    missing = count("SELECT COUNT(id) FROM osm_elements_view WHERE country_code = '' IS NOT FALSE")
+    missing = count("SELECT COUNT(id) FROM osm_polygon WHERE place_rank <= 4 AND country_code = '' IS NOT FALSE")
     if missing > 0:
-        log.warning('{} elements with missing country_code'.format(missing))
+        log.warning('{} polygons with place_rank <= 4 AND an empty country_code'.format(missing))
 
 
 def missing_parent_ids():

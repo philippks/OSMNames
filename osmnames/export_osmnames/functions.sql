@@ -58,13 +58,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
-
 DROP FUNCTION IF EXISTS get_parent_info(TEXT, BIGINT, INTEGER) CASCADE;
 CREATE FUNCTION get_parent_info(display_name TEXT, polygon_id BIGINT, current_rank INTEGER) RETURNS parentInfo AS $$
 DECLARE
   retVal parentInfo;
   current_name TEXT;
   current_parent_id BIGINT;
+  current_country_code VARCHAR(2);
 BEGIN
   current_name := display_name;
   retVal.displayName := current_name;
@@ -78,14 +78,15 @@ BEGIN
   END IF;
 
   current_parent_id := polygon_id;
-  WHILE current_rank >= 8 AND current_parent_id IS NOT NULL LOOP
+  WHILE current_rank >= 4 AND current_parent_id IS NOT NULL LOOP
     SELECT
       getLanguageName(name, name_fr, name_en, name_de, name_es, name_ru, name_zh),
       place_rank,
-      parent_id
+      parent_id,
+      country_code
     FROM osm_polygon
     WHERE id = current_parent_id
-    INTO current_name, current_rank, current_parent_id;
+    INTO current_name, current_rank, current_parent_id, current_country_code;
 
     IF current_name IS NOT NULL THEN
       retVal.displayName := retVal.displayName || ', ' || current_name;
@@ -98,11 +99,14 @@ BEGIN
     ELSIF current_rank BETWEEN 8 AND 11 THEN
       retVal.state := current_name;
     END IF;
+
+    IF current_country_code = '' IS FALSE THEN
+      retVal.country_code = current_country_code;
+    END IF;
   END LOOP;
 RETURN retVal;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
-
 
 
 DROP FUNCTION IF EXISTS country_name(VARCHAR);
