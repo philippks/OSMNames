@@ -26,7 +26,7 @@ SELECT
   wikidata AS wikidata,
   wikipedia AS wikipedia
 FROM
-  osm_merged_multi_linestring,
+  osm_aggregated_merged_linestrings_view,
   getLanguageName(name, name_fr, name_en, name_de, name_es, name_ru, name_zh) AS languageName,
   get_parent_info(languageName, parent_id, place_rank) AS parentInfo,
   getAlternativesNames(name, name_fr, name_en, name_de, name_es, name_ru, name_zh, languageName, ',') AS alternative_names

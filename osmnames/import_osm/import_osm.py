@@ -82,7 +82,7 @@ def prepare_imported_data():
     set_country_codes()
     determine_linked_places()
     create_hierarchy()
-    merge_corresponding_streets()
+    merge_corresponding_linestrings()
     prepare_housenumbers()
     vacuum_database()
 
@@ -109,5 +109,5 @@ def create_hierarchy():
     consistency_check.missing_parent_ids()
 
 
-def merge_corresponding_streets():
-    exec_sql_from_file("merge_corresponding_streets.sql", cwd=os.path.dirname(__file__))
+def merge_corresponding_linestrings():
+    exec_sql_from_file("merge_corresponding_linestrings.sql", cwd=os.path.dirname(__file__))
