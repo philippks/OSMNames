@@ -1,4 +1,4 @@
-from geoalchemy2.elements import WKTElement
+from helpers.functions import geometry_from_wkt
 from osmnames.prepare_data.prepare_housenumbers import set_street_attributes_by_nearest_street
 
 
@@ -9,9 +9,11 @@ def test_street_id_and_name_set_to_nearest_street_with_same_parent(session, tabl
                     osm_id=195916994,
                     housenumber=89,
                     parent_id=9999,
-                    geometry=WKTElement("""POLYGON((835220.293672307 5939566.85419046,835223.11154127
-                    5939588.79287532,835237.163563318 5939586.97376781,835234.345694356
-                    5939565.06244245,835220.293672307 5939566.85419046))""", srid=3857)
+                    geometry=geometry_from_wkt("""POLYGON((7.50291155412629
+                        46.984637330684,7.50293686747387
+                        46.9847717764109,7.50306309893565
+                        46.9847606284797,7.50303778558808
+                        46.9846263503908,7.50291155412629 46.984637330684))""")
                 )
             )
 
@@ -21,10 +23,13 @@ def test_street_id_and_name_set_to_nearest_street_with_same_parent(session, tabl
                     osm_id=25736914,
                     name="Dorfstrasse",
                     parent_id=9999,
-                    geometry=WKTElement("""LINESTRING(835569.625447532 5939578.46636778,835353.853196615
-                        5939540.30626715,835189.782309692 5939547.66472518,834976.622652515
-                        5939499.47924756,834903.040815942 5939518.99686424,834783.579967145
-                        5939588.61506781,834755.821158649 5939590.92656582)""", srid=3857)
+                    geometry=geometry_from_wkt("""LINESTRING(7.50604965485542
+                        46.9847084930419,7.50411133974654
+                        46.9844746379434,7.50263746589252
+                        46.9845197325825,7.50072262011252
+                        46.9842244381337,7.50006162322825
+                        46.9843440478919,7.49898848816497
+                        46.9847706867635,7.49873912654556 46.9847848521798)""")
                 )
             )
 
@@ -34,8 +39,9 @@ def test_street_id_and_name_set_to_nearest_street_with_same_parent(session, tabl
                     osm_id=26162329,
                     name="Zaelgli",
                     parent_id=9999,
-                    geometry=WKTElement("""LINESTRING(835139.891099933 5939534.73955675,835080.034711193
-                        5939629.44250458,835054.655229139 5939807.33473233)""", srid=3857)
+                    geometry=geometry_from_wkt("""LINESTRING(7.50218928552983
+                        46.9844405235975,7.50165158644125
+                        46.9850208865732,7.50142359867493 46.9861110368999)""")
                 )
             )
 

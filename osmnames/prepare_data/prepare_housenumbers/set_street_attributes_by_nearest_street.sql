@@ -6,7 +6,7 @@ BEGIN
   SELECT COALESCE(street.merged_into, street.osm_id), street.name
     FROM osm_linestring AS street
     WHERE parent_id = parent_id_in
-          AND st_dwithin(geometry, geometry_in, 1000)
+          AND st_dwithin(geometry, geometry_in, 0.009)
     ORDER BY st_distance(geometry, geometry_in) ASC
     LIMIT 1;
 END;

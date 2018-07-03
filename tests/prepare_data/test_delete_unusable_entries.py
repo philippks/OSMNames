@@ -1,7 +1,7 @@
-from geoalchemy2.elements import WKTElement
+from helpers.functions import geometry_from_wkt
 from osmnames.prepare_data.prepare_data import delete_unusable_entries
 
-POLYGON_GEOMETRY = WKTElement('POLYGON((1 2, 3 4, 5 6, 1 2))', srid=3857)
+POLYGON_GEOMETRY = geometry_from_wkt('POLYGON((1 2, 3 4, 5 6, 1 2))')
 
 
 def test_osm_polygon_with_blank_names_get_deleted(session, tables):
@@ -46,7 +46,7 @@ def test_osm_linestring_with_blank_names_get_deleted(session, tables):
 
 def test_osm_polygon_with_empty_geometries_get_deleted(session, tables):
     session.add(tables.osm_polygon(name="some polygon", geometry=POLYGON_GEOMETRY))
-    session.add(tables.osm_polygon(name="an empty polygon", geometry=WKTElement('POLYGON EMPTY', srid=3857)))
+    session.add(tables.osm_polygon(name="an empty polygon", geometry=geometry_from_wkt('POLYGON EMPTY')))
     session.commit()
 
     delete_unusable_entries()

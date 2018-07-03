@@ -1,7 +1,8 @@
 def test_get_bounding_box(session, tables):
-    geometry_switzerland = """POLYGON((663009.012524866 5801584.86199727,953786.907618496
-                            6075049.14132019,1167669.27353812 5931925.52282563,1003885.85590161
-                            5751249.46091655,663009.012524866 5801584.86199727))"""
+    geometry_switzerland = """POLYGON((5.95591129460078
+        46.1323564473647,8.56801356906789 47.8084647540334,10.4893515521603
+        46.9377887783714,9.01806007867824 45.8181130300574,5.95591129460078
+        46.1323564473647))"""
 
     bounding_box_switzerland = get_bounding_box(session, geometry_switzerland, "ch", 2)
 
@@ -20,9 +21,10 @@ def test_bbox_for_countries_with_colonies(session, tables):
 
 
 def test_bbox_for_polygon_crossing_dateline(session, tables):
-    geometry_new_zealand = """MULTIPOLYGON(((18494464.2739796 -5765490.1114168,19469739.2751992
-                            -4955491.9787282,19204739.6279404 -4065136.81803059,19900995.6639275
-                            -4516506.15533551,18494464.2739796 -5765490.1114168)))"""
+    geometry_new_zealand = """MULTIPOLYGON(((166.138599289183
+        -45.9071981590935,174.899643687336 -40.6134516417377,172.519111353147
+        -34.270167130167,178.773685741024 -37.5532522368813,166.138599289183
+        -45.9071981590935)))"""
 
     bbox_new_zealand = get_bounding_box(session, geometry_new_zealand, "nz", 2)
 
@@ -34,13 +36,13 @@ def test_bbox_for_polygon_crossing_dateline(session, tables):
 
 def test_bbox_for_shifted_polygon_crossing_dateline(session, tables):
     # SELECT st_astext(st_simplify(geometry, 50000)) FROM osm_polygon WHERE osm_id = -571747;
-    geometry_fiji = """MULTIPOLYGON(((19666822.7473415
-                     -1945432.25453485,20037508.3335705 -1747916.03957713,20037508.3335705
-                     -2249414.75862629,19795402.1361301 -2190671.57259429,19666822.7473415
-                     -1945432.25453485)),((-20037508.3427892 -2249414.75862629,-20033425.0920396
-                         -1747790.52537892,-19923986.5820418 -1800938.34212573,-19818247.7940324
-                         -2022903.46913563,-19879359.4594201 -2407253.84591183,-20037508.3427892
-                         -2249414.75862629)))"""
+    geometry_fiji = """MULTIPOLYGON(((176.670074640063
+        -17.2112718586013,179.999999917187 -15.5088681805728,179.999999917187
+        -19.8005205387898,177.825122941779 -19.3032512248901,176.670074640063
+        -17.2112718586013)),((-180 -19.8005205387898,-179.963319534427
+        -15.5077817182834,-178.980216672404 -15.9673182186668,-178.030348978473
+        -17.8748357007115,-178.579324409031 -21.1288887446798,-180
+        -19.8005205387898)))"""
 
     bbox_fiji = get_bounding_box(session, geometry_fiji, "fj", 4)
 
@@ -49,9 +51,11 @@ def test_bbox_for_shifted_polygon_crossing_dateline(session, tables):
 
 def test_bbox_for_falkland_islands(session, tables):
     # SELECT st_astext(st_simplify(geometry, 100000)) FROM osm_polygon WHERE osm_id = -2185374;
-    geometry_falkland_island = """MULTIPOLYGON(((-6876502.97291447 -6619095.9618266,-6439638.44644622
-      -6651658.66806542,-6387351.76814869 -6752035.30436411,-6544170.5147295 -6916410.57664787,-6760580.27584192
-      -6882454.668139,-6861295.56860645 -6786432.95551777,-6876502.97291447 -6619095.9618266)))"""
+    geometry_falkland_island = """MULTIPOLYGON(((-61.772677218624
+        -50.9875737757979,-57.8482564064633 -51.1713441530302,-57.3785571837582
+        -51.7332428019015,-58.7872839526582 -52.6385132388934,-60.7313259130577
+        -52.4530157705123,-61.6360667814072 -51.9242084562749,-61.772677218624
+        -50.9875737757979)))"""
 
     bbox_falkland_island = get_bounding_box(session, geometry_falkland_island, "fk", 2)
 
@@ -63,7 +67,7 @@ def test_bbox_for_falkland_islands(session, tables):
 
 def get_bounding_box(session, geometry, country_code, admin_level):
     query = """SELECT get_bounding_box(
-                    ST_SetSRID('{}'::GEOMETRY, 3857),
+                    ST_SetSRID('{}'::GEOMETRY, 4326),
                     '{}'
                     ,{})""".format(geometry, country_code, admin_level)
 

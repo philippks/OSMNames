@@ -12,7 +12,7 @@ RETURNS BIGINT AS $$
   SELECT COALESCE(merged_into, osm_id)
     FROM osm_linestring
     WHERE parent_id = parent_id_in
-          AND st_dwithin(geometry_in, geometry, 1000) -- added due better performance
+          AND st_dwithin(geometry_in, geometry, 0.009) -- added due better performance
           AND normalized_name % name_in
     ORDER BY similarity(normalized_name, name_in) DESC
     LIMIT 1;
@@ -23,7 +23,7 @@ CREATE FUNCTION best_matching_street_within_range(geometry_in GEOMETRY, name_in 
 RETURNS BIGINT AS $$
   SELECT COALESCE(merged_into, osm_id)
     FROM osm_linestring
-    WHERE st_dwithin(geometry_in, geometry, 1000)
+    WHERE st_dwithin(geometry_in, geometry, 0.009)
           AND normalized_name % name_in
     ORDER BY similarity(normalized_name, name_in) DESC
     LIMIT 1;
@@ -42,7 +42,7 @@ WHERE street.parent_id = housenumber.parent_id
 UPDATE osm_housenumber AS housenumber
   SET street_id = COALESCE(street.merged_into, street.osm_id)
 FROM osm_linestring AS street
-WHERE st_dwithin(street.geometry, housenumber.geometry_center, 1000)
+WHERE st_dwithin(street.geometry, housenumber.geometry_center, 0.009)
       AND street.normalized_name = housenumber.normalized_street
       AND housenumber.street_id IS NULL
       AND housenumber.normalized_street != '';

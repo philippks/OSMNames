@@ -146,7 +146,6 @@ BEGIN
   ELSIF admin_level = 2 AND lower(country_code) = 'nl' THEN
     bounding_box := ARRAY[3.133,50.75,7.217,53.683];
   ELSE
-    geom := ST_Transform(geom, 4326);
     shifted_geom := ST_ShiftLongitude(geom);
     original_geom_length := ST_XMAX(geom) - ST_XMIN(geom);
     shifted_geom_length := ST_XMAX(shifted_geom) - ST_XMIN(shifted_geom);

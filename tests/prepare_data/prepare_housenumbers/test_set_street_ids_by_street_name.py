@@ -1,4 +1,4 @@
-from geoalchemy2.elements import WKTElement
+from helpers.functions import geometry_from_wkt
 from osmnames.prepare_data.prepare_housenumbers import set_street_ids_by_street_name
 
 
@@ -53,7 +53,7 @@ def test_when_street_with_same_parent_id_but_almost_same_name_exists(session, ta
                 parent_id=1337,
                 osm_id=88267051,
                 normalized_street="bochslenrasse",
-                geometry_center=WKTElement("POINT(653642.999259018 6623211.41263188)", srid=3857)
+                geometry_center=geometry_from_wkt("""POINT(5.87177496592101 51.010839973769)""")
                 )
 
             )
@@ -64,9 +64,8 @@ def test_when_street_with_same_parent_id_but_almost_same_name_exists(session, ta
                 osm_id=42,
                 parent_id=1337,
                 normalized_name="bochslenstrasse",
-                geometry=WKTElement("""LINESTRING(653664.707113796
-                                       6623110.56066385,653621.291404239
-                                       6623312.26459991)""", srid=3857)
+                geometry=geometry_from_wkt("""LINESTRING(5.87196997089833
+                    51.0102699589409,5.87157996094367 51.0114099815915)""")
                 )
             )
 
@@ -84,7 +83,8 @@ def test_when_housenumber_street_contains_full_street_name(session, tables):
                 parent_id=1337,
                 osm_id=88267051,
                 normalized_street="citepreville19",
-                geometry_center=WKTElement("POINT(653642.999259018 6623211.41263188)", srid=3857)
+                geometry_center=geometry_from_wkt("""POINT(5.87177496592101
+                51.010839973769)""")
                 )
 
             )
@@ -95,9 +95,8 @@ def test_when_housenumber_street_contains_full_street_name(session, tables):
                 osm_id=42,
                 parent_id=1337,
                 normalized_name="citepreville",
-                geometry=WKTElement("""LINESTRING(653664.707113796
-                                       6623110.56066385,653621.291404239
-                                       6623312.26459991)""", srid=3857)
+                geometry=geometry_from_wkt("""LINESTRING(5.87196997089833
+                    51.0102699589409,5.87157996094367 51.0114099815915)""")
                 )
             )
 

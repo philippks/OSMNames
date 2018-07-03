@@ -1,5 +1,14 @@
-from geoalchemy2.elements import WKTElement
+from helpers.functions import geometry_from_wkt
 from osmnames.prepare_data.prepare_data import merge_corresponding_linestrings
+
+
+TOUCHING_LINESTRING_LHS = geometry_from_wkt("""LINESTRING(8.48772097163589
+        47.2647943976317,8.48773622669969 47.2649455233459,8.4877325386623
+        47.2650472796504)""")
+
+TOUCHING_LINESTRING_RHS = geometry_from_wkt("""LINESTRING(8.4877325386623
+        47.2650472796504,8.48765224002989 47.2652291669493,8.48755727306693
+        47.2655106312578,8.48752374545424 47.2656923509186)""")
 
 
 def test_touching_linestrings_with_same_name_and_parent_id_get_merged(session, tables):
@@ -9,11 +18,8 @@ def test_touching_linestrings_with_same_name_and_parent_id_get_merged(session, t
                 osm_id=1111,
                 name="Rigiweg",
                 parent_id=1337,
-                geometry=WKTElement("""LINESTRING(944848.776557897 5985402.86960293,
-                    944850.474743831 5985427.66032806,944850.064193386
-                    5985444.35251452)""", srid=3857)
+                geometry=TOUCHING_LINESTRING_LHS)
             )
-        )
 
     session.add(
             tables.osm_linestring(
@@ -21,11 +27,8 @@ def test_touching_linestrings_with_same_name_and_parent_id_get_merged(session, t
                 osm_id=2222,
                 name="Rigiweg",
                 parent_id=1337,
-                geometry=WKTElement("""LINESTRING(944850.064193386 5985444.35251452,
-                    944841.125390515 5985474.18953402,944830.553716556 5985520.36149253,
-                    944826.821439784 5985550.17127335)""", srid=3857)
+                geometry=TOUCHING_LINESTRING_RHS)
             )
-        )
 
     session.commit()
 
@@ -44,10 +47,11 @@ def test_multiple_touching_linestrings_with_same_name_and_parent_id_get_merged(s
                 osm_id=1111,
                 name="Dorfstrasse",
                 parent_id=1337,
-                geometry=WKTElement("""LINESTRING(945262.014242162 5985606.22988835,
-                    945125.963423109 5985669.20516832,944921.48130943 5985680.63151807,
-                    944732.478813664 5985815.76883825,
-                    944577.598658291 5985883.07702847)""", srid=3857)
+                geometry=geometry_from_wkt("""LINESTRING(8.49143314891339
+                    47.266034081111,8.49021098361167
+                    47.2664179722763,8.4883740895312
+                    47.2664876258917,8.48667625122436
+                    47.2673113993356,8.48528493911658 47.267721693496)""")
             )
         )
 
@@ -57,8 +61,8 @@ def test_multiple_touching_linestrings_with_same_name_and_parent_id_get_merged(s
                 osm_id=2222,
                 name="Dorfstrasse",
                 parent_id=1337,
-                geometry=WKTElement("""LINESTRING(944410.8312014 5985761.48265348,
-                    944216.360920161 5985861.25509228)""", srid=3857)
+                geometry=geometry_from_wkt("""LINESTRING(8.48378684156239
+                    47.2669804817983,8.48203988530295 47.2675886726926)""")
             )
         )
 
@@ -68,8 +72,8 @@ def test_multiple_touching_linestrings_with_same_name_and_parent_id_get_merged(s
                 osm_id=3333,
                 name="Dorfstrasse",
                 parent_id=1337,
-                geometry=WKTElement("""LINESTRING(944410.8312014 5985761.48265348,
-                    944577.598658291 5985883.07702847)""", srid=3857)
+                geometry=geometry_from_wkt("""LINESTRING(8.48378684156239
+                    47.2669804817983,8.48528493911658 47.267721693496)""")
             )
         )
 
@@ -79,10 +83,11 @@ def test_multiple_touching_linestrings_with_same_name_and_parent_id_get_merged(s
                 osm_id=4444,
                 name="Dorfstrasse",
                 parent_id=1337,
-                geometry=WKTElement("""LINESTRING(945286.283371876 5985592.46613797,
-                    945284.781130476 5985609.66739185,945262.014242162 5985606.22988835,
-                    945266.045101078 5985588.14864235,
-                    945286.283371876 5985592.46613797)""", srid=3857)
+                geometry=geometry_from_wkt("""LINESTRING(8.49165116221493
+                    47.2659501782602,8.49163766735083
+                    47.266055035869,8.49143314891339
+                    47.266034081111,8.49146935873511
+                    47.2659238590843,8.49165116221493 47.2659501782602)""")
             )
         )
 
@@ -105,9 +110,10 @@ def test_almost_touching_linestrings_with_same_name_and_parent_id_get_merged(ses
                 name="Oberseestrasse",
                 parent_id=1337,
                 osm_id=24055427,
-                geometry=WKTElement("""LINESTRING(981453.976751762
-                    5978726.11248254,981467.114366002 5978716.22031828,981491.02892942
-                    5978722.30674579,981536.264123906 5978726.22239555)""", srid=3857)
+                geometry=geometry_from_wkt("""LINESTRING(8.81655107975993
+                    47.2240767883953,8.81666909695662
+                    47.2240164386925,8.81688392513493
+                    47.2240535705235,8.8172902798008 47.2240774589477)""")
             )
         )
 
@@ -117,8 +123,8 @@ def test_almost_touching_linestrings_with_same_name_and_parent_id_get_merged(ses
                 name="Oberseestrasse",
                 parent_id=1337,
                 osm_id=308577271,
-                geometry=WKTElement("""LINESTRING(981558.359202398
-                    5978726.38726504,981674.610293174 5978708.37529047)""", srid=3857)
+                geometry=geometry_from_wkt("""LINESTRING(8.81748876326793
+                    47.224078464776,8.81853306458433 47.2239685780254)""")
             )
         )
 
@@ -137,10 +143,7 @@ def test_touching_linestrings_with_same_name_but_different_parent_id_dont_get_me
                 id=1,
                 name="Rigiweg",
                 parent_id=1337,
-                geometry=WKTElement("""LINESTRING(944848.776557897 5985402.86960293,
-                    944850.474743831 5985427.66032806,944850.064193386
-                    5985444.35251452)""", srid=3857)
-            )
+                geometry=TOUCHING_LINESTRING_LHS)
         )
 
     session.add(
@@ -148,10 +151,7 @@ def test_touching_linestrings_with_same_name_but_different_parent_id_dont_get_me
                 id=2,
                 name="Rigiweg",
                 parent_id=9999,
-                geometry=WKTElement("""LINESTRING(944850.064193386 5985444.35251452,
-                    944841.125390515 5985474.18953402,944830.553716556 5985520.36149253,
-                    944826.821439784 5985550.17127335)""", srid=3857)
-            )
+                geometry=TOUCHING_LINESTRING_RHS)
         )
 
     session.commit()
@@ -168,22 +168,16 @@ def test_touching_linestrings_with_same_parent_id_but_different_name_dont_get_me
                 id=1,
                 name="Rigiweg",
                 parent_id=1337,
-                geometry=WKTElement("""LINESTRING(944848.776557897 5985402.86960293,
-                    944850.474743831 5985427.66032806,944850.064193386
-                    5985444.35251452)""", srid=3857)
+                geometry=TOUCHING_LINESTRING_LHS)
             )
-        )
 
     session.add(
             tables.osm_linestring(
                 id=2,
                 name="Zueristrasse",
                 parent_id=1337,
-                geometry=WKTElement("""LINESTRING(944850.064193386 5985444.35251452,
-                    944841.125390515 5985474.18953402,944830.553716556 5985520.36149253,
-                    944826.821439784 5985550.17127335)""", srid=3857)
+                geometry=TOUCHING_LINESTRING_RHS)
             )
-        )
 
     session.commit()
 
