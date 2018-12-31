@@ -10,7 +10,7 @@ SELECT
   round(ST_X(ST_Transform(geometry, 4326))::numeric, 7) AS lon,
   round(ST_Y(ST_Transform(geometry, 4326))::numeric, 7) AS lat,
   place_rank,
-  get_importance(place_rank, wikipedia, parentInfo.country_code) AS importance,
+  get_importance(place_rank, wikipedia, parentInfo.country_code, NULL) AS importance,
   NULL::TEXT AS street,
   parentInfo.city AS city,
   parentInfo.county AS county,

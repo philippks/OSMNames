@@ -81,8 +81,27 @@ CREATE FUNCTION get_country_name(country_code_in VARCHAR(2)) returns TEXT as $$
 $$ LANGUAGE 'sql' IMMUTABLE;
 
 
-DROP FUNCTION IF EXISTS get_importance(INTEGER, VARCHAR, VARCHAR);
-CREATE FUNCTION get_importance(place_rank INT, wikipedia VARCHAR, country_code VARCHAR(2)) RETURNS DOUBLE PRECISION as $$
+DROP FUNCTION IF EXISTS get_importance(INTEGER, VARCHAR, VARCHAR, BIGINT[]);
+CREATE FUNCTION get_importance(place_rank INT, wikipedia VARCHAR, country_code VARCHAR(2), linked_osm_ids BIGINT[]) RETURNS DOUBLE PRECISION as $$
+DECLARE
+  wikipedia_importance double precision;
+  linked_place_importance double precision;
+BEGIN
+  wikipedia_importance := get_importance_from_wikipedia(wikipedia, country_code);
+  linked_place_importance := get_importance_from_linked_osm_ids(linked_osm_ids);
+
+  IF wikipedia_importance IS NOT NULL OR linked_place_importance IS NOT NULL THEN
+    RETURN GREATEST(wikipedia_importance, linked_place_importance);
+  ELSE
+    RETURN 0.75-(place_rank::double precision/40);
+  END IF;
+END;
+$$
+LANGUAGE plpgsql IMMUTABLE;
+
+
+DROP FUNCTION IF EXISTS get_importance_from_wikipedia(VARCHAR, VARCHAR);
+CREATE FUNCTION get_importance_from_wikipedia(wikipedia VARCHAR, country_code VARCHAR(2)) RETURNS DOUBLE PRECISION as $$
 DECLARE
   wiki_article_title TEXT;
   wiki_article_language VARCHAR;
@@ -103,14 +122,19 @@ BEGIN
   LIMIT 1
   INTO result;
 
-  IF result IS NOT NULL THEN
-    RETURN result;
-  ELSE
-    RETURN 0.75-(place_rank::double precision/40);
-  END IF;
+  RETURN result;
 END;
 $$
 LANGUAGE plpgsql IMMUTABLE;
+
+
+DROP FUNCTION IF EXISTS get_importance_from_linked_osm_ids(BIGINT[]);
+CREATE FUNCTION get_importance_from_linked_osm_ids(linked_osm_ids BIGINT[]) RETURNS DOUBLE PRECISION as $$
+  SELECT max(get_importance(place_rank, wikipedia, parentInfo.country_code, ARRAY[]::BIGINT[]))
+         FROM osm_point,
+              get_parent_info(id, '') as parentInfo
+         WHERE osm_id = ANY(linked_osm_ids);
+$$ LANGUAGE 'sql' IMMUTABLE;
 
 
 DROP FUNCTION IF EXISTS get_country_language_code(VARCHAR);
