@@ -9,12 +9,13 @@ from osmnames import consistency_check
 
 def prepare_data():
     configure_for_preparation()
+    delete_unusable_entries()
     set_country_codes()
     set_polygon_types()
     set_place_ranks()
     merge_linked_nodes()
     set_names()
-    delete_unusable_entries()
+    delete_nameless_entries()
     follow_wikipedia_redirects()
     create_hierarchy()
     merge_corresponding_linestrings()
@@ -47,6 +48,11 @@ def create_helper_functions():
 
 def merge_linked_nodes():
     exec_sql_from_file("merge_linked_nodes/merge_nodes_linked_by_relation.sql", cwd=os.path.dirname(__file__))
+    vacuum_database()
+
+
+def delete_nameless_entries():
+    exec_sql_from_file("delete_nameless_entries.sql", cwd=os.path.dirname(__file__), parallelize=True)
     vacuum_database()
 
 
