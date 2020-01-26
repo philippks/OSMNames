@@ -16,8 +16,9 @@ def export_osmnames():
     create_views()
     create_export_dir()
     export_geonames()
-    export_housenumbers()
-    gzip_tsv_files()
+
+    if not settings.get("SKIP_HOUSENUMBERS"):
+        export_housenumbers()
 
 
 def create_functions():
@@ -72,11 +73,13 @@ def create_export_dir():
 def export_geonames():
     log.info("export geonames to {}".format(geonames_export_path()))
     export_to_tsv("SELECT * FROM geonames_view ORDER BY importance DESC NULLS LAST", geonames_export_path())
+    gzip_tsv_file(geonames_export_path())
 
 
 def export_housenumbers():
     log.info("export housenumbers to {}".format(housenumbers_export_path()))
     export_to_tsv("SELECT * FROM mv_housenumbers", housenumbers_export_path())
+    gzip_tsv_file(housenumbers_export_path())
 
 
 def export_to_tsv(query, path):
@@ -89,10 +92,11 @@ def export_to_tsv(query, path):
         ])
 
 
-def gzip_tsv_files():
-    for tsv_file_path in [geonames_export_path(), housenumbers_export_path()]:
-        with open(tsv_file_path, 'rb') as f_in, gzip.open("{}.gz".format(tsv_file_path), 'wb') as f_out:
-            shutil.copyfileobj(f_in, f_out)
+def gzip_tsv_file(tsv_file_path):
+    with open(tsv_file_path, "rb") as f_in, gzip.open(
+        "{}.gz".format(tsv_file_path), "wb"
+    ) as f_out:
+        shutil.copyfileobj(f_in, f_out)
 
 
 def geonames_export_path():

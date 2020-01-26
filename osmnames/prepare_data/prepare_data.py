@@ -5,6 +5,7 @@ from osmnames.prepare_data.set_names import set_names
 from osmnames.prepare_data.prepare_housenumbers import prepare_housenumbers
 from osmnames.prepare_data.create_hierarchy import create_hierarchy
 from osmnames import consistency_check
+from osmnames import settings
 
 
 def prepare_data():
@@ -19,7 +20,9 @@ def prepare_data():
     follow_wikipedia_redirects()
     create_hierarchy()
     merge_corresponding_linestrings()
-    prepare_housenumbers()
+
+    if not settings.get("SKIP_HOUSENUMBERS"):
+        prepare_housenumbers()
 
 
 def configure_for_preparation():
